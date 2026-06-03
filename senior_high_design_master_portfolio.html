@@ -1,0 +1,322 @@
+
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Noto+Sans+TC:wght@400;900&family=Press+Start+2P&family=Dancing+Script:wght@700&family=Oswald:wght@700&family=Caveat:wght@700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#fff;}
+.wrap{font-family:'Noto Sans TC',sans-serif;overflow:hidden;}
+
+/* 跑馬燈 */
+.marquee-bar{background:#ff0066;color:#ffff00;font-family:'Press Start 2P',monospace;font-size:11px;padding:8px 0;overflow:hidden;white-space:nowrap;}
+.marquee-inner{display:inline-block;animation:scroll 18s linear infinite;}
+@keyframes scroll{0%{transform:translateX(100vw);}100%{transform:translateX(-100%);}}
+
+/* hero */
+.hero{background:linear-gradient(135deg,#ff6ec7,#ffe600,#00e5ff);text-align:center;padding:28px 16px 18px;border-bottom:6px solid #000;position:relative;}
+.hero-star{font-size:22px;animation:spin 3s linear infinite;display:inline-block;}
+@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+.hero-title{font-family:'Pacifico',cursive;font-size:38px;color:#000;text-shadow:4px 4px 0 #ff0066,8px 8px 0 #0000ff;line-height:1.1;margin:8px 0;}
+.hero-subtitle{font-family:'Oswald',sans-serif;font-size:16px;background:#000;color:#ffff00;display:inline-block;padding:4px 16px;letter-spacing:3px;margin:6px 0;}
+.hero-badge{display:inline-block;background:#ff0000;color:#fff;font-family:'Press Start 2P',monospace;font-size:9px;padding:6px 12px;margin:6px 4px;border:3px solid #000;animation:blink 1s step-end infinite;}
+@keyframes blink{50%{opacity:0;}}
+.hero-photo-frame{width:110px;height:110px;border-radius:50%;background:linear-gradient(#ff6ec7,#ffe600);border:5px solid #000;margin:12px auto;display:flex;align-items:center;justify-content:center;font-size:52px;box-shadow:5px 5px 0 #000;}
+
+/* 統計數字 */
+.stats-bar{background:#000;padding:14px;display:flex;justify-content:space-around;flex-wrap:wrap;gap:8px;}
+.stat-item{text-align:center;color:#fff;}
+.stat-num{font-family:'Pacifico',cursive;font-size:28px;color:#ffff00;}
+.stat-label{font-family:'Press Start 2P',monospace;font-size:8px;color:#ff6ec7;}
+
+/* 技能區 */
+.section-skills{background:#e8f4ff;padding:16px;border:4px dashed #0066ff;}
+.section-title{font-family:'Dancing Script',cursive;font-size:28px;color:#0066ff;text-align:center;text-decoration:underline wavy #ff0066;}
+.skill-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:12px;}
+.skill-card{background:#fff;border:3px solid #000;padding:10px;text-align:center;box-shadow:4px 4px 0 #0066ff;}
+.skill-name{font-family:'Oswald',sans-serif;font-size:14px;font-weight:700;}
+.skill-bar-bg{background:#ddd;height:14px;border:2px solid #000;margin-top:6px;border-radius:0;}
+.skill-bar-fill{height:100%;background:linear-gradient(90deg,#ff0066,#ffff00);}
+.skill-pct{font-family:'Press Start 2P',monospace;font-size:9px;color:#000;}
+
+/* 作品集 */
+.section-works{background:#fff9c4;padding:16px;border-top:5px solid #ff6600;border-bottom:5px solid #ff6600;}
+.works-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:12px;}
+.work-card{border:3px solid #000;overflow:hidden;box-shadow:5px 5px 0 #ff6600;}
+.work-thumb{height:80px;display:flex;align-items:center;justify-content:center;font-size:36px;}
+.work-info{background:#000;color:#fff;padding:6px 8px;}
+.work-title{font-family:'Caveat',cursive;font-size:16px;}
+.work-desc{font-size:10px;color:#aaa;font-family:'Press Start 2P',monospace;}
+
+/* 得獎 */
+.section-awards{background:#ff0066;padding:16px;color:#fff;}
+.awards-list{margin-top:12px;}
+.award-item{background:#fff;color:#000;border:3px solid #000;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;box-shadow:3px 3px 0 #000;}
+.award-icon{font-size:24px;}
+.award-text{font-family:'Noto Sans TC',sans-serif;font-size:13px;font-weight:900;}
+.award-year{font-family:'Press Start 2P',monospace;font-size:9px;color:#ff0066;margin-left:auto;}
+
+/* 理念 */
+.section-philosophy{background:#1a1a2e;padding:16px;color:#fff;position:relative;overflow:hidden;}
+.philosophy-bg{position:absolute;top:-20px;right:-20px;font-size:120px;opacity:0.05;font-family:'Pacifico',cursive;pointer-events:none;}
+.philosophy-quote{font-family:'Dancing Script',cursive;font-size:22px;color:#ffe600;line-height:1.5;border-left:6px solid #ff6ec7;padding-left:16px;margin:12px 0;}
+.philosophy-list{list-style:none;margin-top:12px;}
+.philosophy-list li{padding:6px 0;border-bottom:1px dashed #444;font-size:13px;display:flex;align-items:center;gap:8px;}
+.philosophy-list li::before{content:"★";color:#ffe600;}
+
+/* 聯絡 */
+.section-contact{background:linear-gradient(90deg,#00e5ff,#ff6ec7);padding:16px;text-align:center;border-top:5px dashed #000;}
+.contact-title{font-family:'Pacifico',cursive;font-size:26px;color:#000;text-shadow:3px 3px 0 #fff;}
+.contact-btns{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:12px;}
+.contact-btn{background:#000;color:#ffff00;font-family:'Press Start 2P',monospace;font-size:9px;padding:10px 14px;border:none;cursor:pointer;text-decoration:none;display:inline-block;box-shadow:4px 4px 0 #ff0066;animation:btnpulse 2s ease-in-out infinite;}
+@keyframes btnpulse{0%,100%{box-shadow:4px 4px 0 #ff0066;}50%{box-shadow:4px 4px 0 #0066ff;}}
+.contact-note{font-size:10px;margin-top:10px;font-family:'Press Start 2P',monospace;color:#000;}
+
+/* 底部 */
+.footer{background:#000;color:#fff;text-align:center;padding:10px;font-family:'Press Start 2P',monospace;font-size:8px;line-height:2;}
+.footer-counter{color:#ffff00;font-size:11px;}
+
+/* 閃爍裝飾 */
+.deco-stars{text-align:center;font-size:18px;letter-spacing:4px;padding:6px;background:#ffe600;}
+.rotating{animation:spin 4s linear infinite;display:inline-block;}
+.counter-badge{display:inline-block;background:#ff0000;color:#fff;font-family:'Press Start 2P',monospace;font-size:8px;padding:3px 8px;border:2px solid #fff;margin:3px;}
+
+.ticker-row{background:#0066ff;color:#fff;font-family:'Press Start 2P',monospace;font-size:9px;padding:5px;overflow:hidden;white-space:nowrap;}
+.ticker-inner{display:inline-block;animation:scroll 12s linear infinite;}
+
+.notice-box{background:#ffff00;border:4px solid #ff0000;padding:8px 12px;margin:10px 0;font-family:'Noto Sans TC',sans-serif;font-size:12px;font-weight:900;text-align:center;animation:noticepulse 1.5s ease-in-out infinite;}
+@keyframes noticepulse{0%,100%{border-color:#ff0000;}50%{border-color:#0066ff;}}
+
+.rainbow-text{background:linear-gradient(90deg,#ff0000,#ff6600,#ffff00,#00cc00,#0066ff,#ff00ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;text-align:center;display:block;}
+</style>
+
+<div class="wrap">
+  <h2 class="sr-only" style="position:absolute;left:-9999px">楊孟勳設計大師個人作品集網站</h2>
+
+  <!-- 跑馬燈 -->
+  <div class="marquee-bar">
+    <span class="marquee-inner">★★★ 歡迎來到台灣最強高中設計師的官方網站 ★★★ 設計即是我的靈魂 ★★★ 我已完全學會設計 ★★★ 你的眼睛將受到前所未有的震撼 ★★★ 本站瀏覽人次 已突破 9999 人 ★★★</span>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div><span class="hero-star">✦</span> <span class="hero-star" style="animation-delay:.5s">✦</span> <span class="hero-star" style="animation-delay:1s">✦</span></div>
+    <div class="hero-photo-frame">67</div>
+    <div class="hero-title">楊孟勳</div>
+    <div style="font-family:'Dancing Script',cursive;font-size:18px;margin:4px 0;color:#000">Yang Meng Xun</div>
+    <div class="hero-subtitle">★ 世界頂尖設計大師 ★</div>
+    <div style="margin:8px 0;">
+      <span class="hero-badge">🔥 高中生</span>
+      <span class="hero-badge" style="background:#0066ff;animation-delay:.5s">設計天才</span>
+      <span class="hero-badge" style="background:#00aa00;animation-delay:1s">完全掌握設計</span>
+    </div>
+    <div class="notice-box">⚠️ 注意：本網站設計過於精良，可能造成視覺震撼，請謹慎瀏覽 ⚠️</div>
+    <div style="font-family:'Press Start 2P',monospace;font-size:9px;color:#000;line-height:2;">
+      現就讀：味道中學 高一已搬<br>
+      未來目標：台大設計系 / 師大美術系 / MIT（都行）<br>
+      座右銘：「Design is Life, Life is Design.」—— 楊孟勳 本人
+    </div>
+  </div>
+
+  <!-- 統計 -->
+  <div class="stats-bar">
+    <div class="stat-item"><div class="stat-num" id="c1">0</div><div class="stat-label">設計作品</div></div>
+    <div class="stat-item"><div class="stat-num" id="c2">0</div><div class="stat-label">得獎次數</div></div>
+    <div class="stat-item"><div class="stat-num" id="c3">0</div><div class="stat-label">設計年資(月)</div></div>
+    <div class="stat-item"><div class="stat-num" id="c4">0</div><div class="stat-label">滿意客戶</div></div>
+    <div class="stat-item"><div class="stat-num" id="c5">0</div><div class="stat-label">設計工具精通</div></div>
+  </div>
+
+  <!-- 跑馬燈2 -->
+  <div class="ticker-row">
+    <span class="ticker-inner">【最新消息】本人剛完成第2個設計作品 ｜ 媒體爭相報導中 ｜ 已拒絕 Google 設計部門邀請（想先讀大學）｜ Dribbble 帳號讚數衝破 200 ｜ 被老師說「這個學生很有想法」</span>
+  </div>
+
+  <!-- 技能 -->
+  <div class="section-skills">
+    <div class="section-title">✨ 我的超強技能 ✨</div>
+    <div style="text-align:center;font-size:11px;color:#666;margin-top:4px;font-family:'Press Start 2P',monospace;">（每項技能都是100%精通）</div>
+    <div class="skill-grid">
+      <div class="skill-card">
+        <div class="skill-name">Canva</div>
+        <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:100%"></div></div>
+        <div class="skill-pct">100% 神級</div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-name">Photoshop</div>
+        <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:97%"></div></div>
+        <div class="skill-pct">97% 大師</div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-name">Figma</div>
+        <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:95%"></div></div>
+        <div class="skill-pct">95% 精通</div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-name">美感</div>
+        <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:100%"></div></div>
+        <div class="skill-pct">100% 天生</div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-name">色彩學</div>
+        <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:100%"></div></div>
+        <div class="skill-pct">100% 通曉</div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-name">版面設計</div>
+        <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:98%"></div></div>
+        <div class="skill-pct">98% 超神</div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-name">UI/UX</div>
+        <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:96%"></div></div>
+        <div class="skill-pct">96% 獨門</div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-name">手繪插畫</div>
+        <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:93%"></div></div>
+        <div class="skill-pct">93% 奇才</div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:10px;">
+      <span class="counter-badge">🛠 軟體數 12+</span>
+      <span class="counter-badge">📚 讀過設計書 3本</span>
+      <span class="counter-badge">🎓 自學 YouTube 500小時</span>
+    </div>
+  </div>
+
+  <!-- 裝飾 -->
+  <div class="deco-stars">
+    <span class="rotating">✦</span>
+    <span style="font-family:'Press Start 2P',monospace;font-size:10px;margin:0 12px">— 精選代表作品 —</span>
+    <span class="rotating" style="animation-direction:reverse">✦</span>
+  </div>
+
+  <!-- 作品 -->
+  <div class="section-works">
+    <div class="section-title">🏆 驚天動地的作品集 🏆</div>
+    <div style="text-align:center;font-family:'Press Start 2P',monospace;font-size:8px;margin-top:4px;color:#666">（每件作品都是嘔心瀝血之作）</div>
+    <div class="works-grid">
+      <div class="work-card">
+        <div class="work-thumb" style="background:linear-gradient(135deg,#ff6ec7,#ffe600)">🌸</div>
+        <div class="work-info"><div class="work-title">班級畢業手冊封面</div><div class="work-desc">2024 可惜沒有發行</div></div>
+      </div>
+      <div class="work-card">
+        <div class="work-thumb" style="background:linear-gradient(135deg,#00e5ff,#0066ff)">🎪</div>
+        <div class="work-info"><div class="work-title">校慶海報設計</div><div class="work-desc">老師說很不錯</div></div>
+      </div>
+      <div class="work-card">
+        <div class="work-thumb" style="background:linear-gradient(135deg,#ffe600,#ff6600)">🦁</div>
+        <div class="work-info"><div class="work-title">社團招募DM</div><div class="work-desc">招到0個人</div></div>
+      </div>
+      <div class="work-card">
+        <div class="work-thumb" style="background:linear-gradient(135deg,#00cc00,#ffe600)">🌿</div>
+        <div class="work-info"><div class="work-title">環保議題 Infographic</div><div class="work-desc">公民課作業 沒交</div></div>
+      </div>
+      <div class="work-card">
+        <div class="work-thumb" style="background:linear-gradient(135deg,#ff0066,#0066ff)">💎</div>
+        <div class="work-info"><div class="work-title">個人品牌 Logo</div><div class="work-desc">改了 47 版，還沒做好</div></div>
+      </div>
+      <div class="work-card">
+        <div class="work-thumb" style="background:linear-gradient(135deg,#ff6ec7,#00e5ff)">🌈</div>
+        <div class="work-info"><div class="work-title">IG 限動模板</div><div class="work-desc">朋友都在用(雖然沒有朋友)</div></div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:12px;">
+      <span class="rainbow-text">以上僅為冰山一角</span>
+      <div style="font-family:'Press Start 2P',monospace;font-size:8px;margin-top:6px;color:#666">更多作品因為太厲害不便公開</div>
+    </div>
+  </div>
+
+  <!-- 得獎 -->
+  <div class="section-awards">
+    <div class="section-title" style="color:#fff;text-decoration-color:#ffff00">🥇 榮耀事蹟 🥇</div>
+    <div class="awards-list">
+      <div class="award-item">
+        <div class="award-icon">🥇</div>
+        <div class="award-text">全國學生美術比賽 平面設計組第一名</div>
+        <div class="award-year">其實沒有</div>
+      </div>
+      <div class="award-item">
+        <div class="award-icon">🏅</div>
+        <div class="award-text">全校美術比賽 佳作</div>
+        <div class="award-year">2026</div>
+      </div>
+      <div class="award-item">
+        <div class="award-icon">🎖</div>
+        <div class="award-text">Canva 設計挑戰 參加獎</div>
+        <div class="award-year">2067</div>
+      </div>
+      <div class="award-item">
+        <div class="award-icon">⭐</div>
+        <div class="award-text">被藝術老師稱讚「有進步」</div>
+        <div class="award-year">2024</div>
+      </div>
+      <div class="award-item">
+        <div class="award-icon">📱</div>
+        <div class="award-text">IG 設計作品 獲得 7 個讚（個人紀錄）</div>
+        <div class="award-year">2026</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 設計理念 -->
+  <div class="section-philosophy">
+    <div class="philosophy-bg">設計</div>
+    <div class="section-title" style="color:#ff6ec7">💡 我的設計哲學（很深奧）💡</div>
+    <div class="philosophy-quote">
+      「設計不只是美觀，更是一種溝通，一種表達，一種存在的方式。當我拿起滑鼠的那一刻，我就是宇宙的藝術家。」
+    </div>
+    <div style="font-family:'Press Start 2P',monospace;font-size:8px;color:#888;text-align:right;margin-bottom:8px">—— 楊孟勳，2024年某個下午</div>
+    <ul class="philosophy-list">
+      <li>設計是天賦，我天生就有（經同學認證）</li>
+      <li>好的設計讓人感動，我的設計讓人震驚</li>
+      <li>留白很重要，但我的作品不需要留白</li>
+      <li>配色是靈魂，我的靈魂是彩虹色</li>
+      <li>字體選擇代表品味，我的品味非常多元</li>
+      <li>用 Canva 也可以做出世界級作品（我就是證明）</li>
+      <li>設計系一定要收我，否則他們會後悔</li>
+    </ul>
+  </div>
+
+  <!-- 聯絡 -->
+  <div class="section-contact">
+    <div class="contact-title">📬 聯絡這位設計大師 📬</div>
+    <div class="contact-btns">
+      <a class="contact-btn" href="#">📧 EMAIL</a>
+      <a class="contact-btn" href="#" style="animation-delay:.3s">📸 IG</a>
+      <a class="contact-btn" href="#" style="animation-delay:.6s">🎨 DRIBBBLE</a>
+      <a class="contact-btn" href="#" style="animation-delay:.9s">💼 合作邀約</a>
+    </div>
+    <div class="contact-note">
+      ⚠ 本大師檔期很滿，不保證回覆 ⚠<br>
+      <span style="font-size:7px">（但還是很希望你傳訊息）</span>
+    </div>
+  </div>
+
+  <!-- footer -->
+  <div class="footer">
+    <div class="footer-counter">👁 本站訪客數：<span id="visitor">載入中</span> 人</div>
+    <div>© 2024 楊孟勳 版權所有 翻印必究</div>
+    <div>本網站由本人親自設計，任何相似純屬巧合</div>
+    <div style="color:#888;font-size:7px">最佳瀏覽解析度：800x600 | IE 6.0 以上</div>
+  </div>
+</div>
+
+<script>
+function animCount(id,target,duration){
+  var el=document.getElementById(id);
+  if(!el)return;
+  var start=0,step=target/60;
+  var timer=setInterval(function(){
+    start+=step;
+    if(start>=target){start=target;clearInterval(timer);}
+    el.textContent=Math.round(start);
+  },duration/60);
+}
+animCount('c1',87,1800);
+animCount('c2',12,1800);
+animCount('c3',18,1800);
+animCount('c4',34,1800);
+animCount('c5',12,1800);
+
+var v=document.getElementById('visitor');
+if(v){v.textContent=(Math.floor(Math.random()*3000)+9847).toLocaleString();}
+</script>
