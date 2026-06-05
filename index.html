@@ -128,7 +128,100 @@ body{background:#fff;}
   <div class="ticker-row">
     <span class="ticker-inner">【最新消息】本人剛完成第2個設計作品 ｜ 媒體爭相報導中 ｜ 已拒絕 Google 設計部門邀請（想先讀大學）｜ Dribbble 帳號讚數衝破 200 ｜ 被老師說「這個學生很有想法」</span>
   </div>
+<script>
+        const canvas = document.getElementById('bounceCanvas');
+        const ctx = canvas.getContext('2d');
 
+        // 球體屬性
+        const ball = {
+            x: canvas.width / 2,
+            y: 100,
+            radius: 40,
+            vx: 4,         // 水平速度
+            vy: 0,         // 垂直速度
+            gravity: 0.6,  // 重力加速度
+            bounce: 0.85,  // 反彈係數 (能量損耗)
+            color: '#ff4757' // 球體主色調
+        };
+
+        // 地面高度
+        const groundY = canvas.height - 50;
+
+        function animate() {
+            // 1. 清除畫布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 2. 物理運動計算
+            ball.vy += ball.gravity; // 套用重力
+            ball.x += ball.vx;       // 移動 X
+            ball.y += ball.vy;       // 移動 Y
+
+            // 3. 碰撞檢測 (地面)
+            if (ball.y + ball.radius > groundY) {
+                ball.y = groundY - ball.radius; // 修正位置，防止穿透
+                ball.vy = -ball.vy * ball.bounce; // 反彈
+                
+                // 當能量過低時靜止，防止無限微幅抖動
+                if (Math.abs(ball.vy) < 1.5) ball.vy = 0;
+            }
+
+            // 4. 碰撞檢測 (左右牆壁)
+            if (ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) {
+                ball.vx = -ball.vx; // 飄向另一邊
+                // 修正邊界避免卡住
+                if (ball.x - ball.radius < 0) ball.x = ball.radius;
+                if (ball.x + ball.radius > canvas.width) ball.x = canvas.width - ball.radius;
+            }
+
+            // --- 繪製 3D 效果陰影 ---
+            // 陰影尺寸隨球體高度變化：球越近地面，陰影越小、越濃
+            const distanceFromGround = groundY - ball.y;
+            const shadowScale = Math.max(0.2, 1 - (distanceFromGround / (canvas.height - 100)));
+            const shadowRadiusX = ball.radius * 1.2 * shadowScale;
+            const shadowRadiusY = ball.radius * 0.2 * shadowScale;
+            const shadowAlpha = Math.max(0.1, 0.6 * shadowScale);
+
+            ctx.beginPath();
+            // 使用橢圓繪製地面陰影
+            ctx.ellipse(ball.x, groundY + 10, shadowRadiusX, shadowRadiusY, 0, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(0, 0, 0, ${shadowAlpha})`;
+            ctx.fill();
+
+            // --- 繪製 3D 立體球體 ---
+            // 使用放射狀漸層（Radial Gradient）模擬右上角照射過來的光源
+            const gradient = ctx.createRadialGradient(
+                ball.x - ball.radius * 0.3, // 光源焦點 X (偏左上)
+                ball.y - ball.radius * 0.3, // 光源焦點 Y (偏左上)
+                ball.radius * 0.1,          // 內圈半徑 (亮點)
+                ball.x, ball.y,             // 外圈中心
+                ball.radius                 // 外圈半徑 (暗部)
+            );
+
+            gradient.addColorStop(0, '#ff7f50'); // 亮部顏色 (高光)
+            gradient.addColorStop(0.4, ball.color); // 球體主色
+            gradient.addColorStop(1, '#990026'); // 暗部顏色 (陰影)
+
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            ctx.closePath();
+
+            // 繪製地面線（讓空間感更明確）
+            ctx.beginPath();
+            ctx.moveTo(0, groundY + 12);
+            ctx.lineTo(canvas.width, groundY + 12);
+            ctx.strokeStyle = '#2d2d44';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // 循環動畫
+            requestAnimationFrame(animate);
+        }
+
+        // 動畫啟動
+        animate();
+    </script>
   <!-- 技能 -->
   <div class="section-skills">
     <div class="section-title">✨ 我的超強技能 ✨</div>
