@@ -329,7 +329,25 @@ body{background:#fff;}
         <h1>NEON CUBE</h1>
         <p>DRAG TO ROTATE • SCROLL TO ZOOM</p>
     </div>
-
+<style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #050505;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        #info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #00f2ff;
+            pointer-events: none;
+            text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+            z-index: 10;
+        }
+        h1 { margin: 0; font-size: 1.5rem; letter-spacing: 1px; }
+        p { margin: 5px 0 0; font-size: 0.9rem; opacity: 0.8; }
+    </style>
     <!-- 載入 Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
