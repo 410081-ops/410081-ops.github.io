@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVG 快速拆分工具</title>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --border-color: #e2e8f0;
+            --error-color: #ef4444;
+            --warn-bg: #fffbeb;
+            --warn-border: #fef3c7;
+            --warn-text: #b45309;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #0f172a;
+                --card-bg: #1e293b;
+                --text-main: #f1f5f9;
+                --text-muted: #94a3b8;
+                --primary: #3b82f6;
+                --primary-hover: #60a5fa;
+                --border-color: #334155;
+                --error-color: #f87171;
+                --warn-bg: #451a03;
+                --warn-border: #78350f;
+                --warn-text: #fde68a;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans TC", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 540px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            text-align: center;
+            letter-spacing: -0.025em;
+        }
+
+        .dropzone {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: rgba(0, 0, 0, 0.01);
+            margin-bottom: 20px;
+        }
+
+        .dropzone:hover, .dropzone.dragover {
+            border-color: var(--primary);
+            background-color: rgba(59, 130, 246, 0.04);
+        }
+
+        .dropzone p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-top: 8px;
+        }
+
+        .dropzone svg {
+            width: 48px;
+            height: 48px;
+            stroke: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .status-box {
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+            text-align: center;
+            min-height: 24px;
+            line-height: 1.5;
+        }
+
+        .status-box.error {
+            color: var(--error-color);
+            font-weight: 500;
+        }
+
+        .warn-box {
+            background-color: var(--warn-bg);
+            border: 1px solid var(--warn-border);
+            color: var(--warn-text);
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            margin-bottom: 20px;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px 20px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            text-align: center;
+        }
+
+        .btn:hover:not(:disabled) {
+            background-color: var(--primary-hover);
+        }
+
+        .btn:disabled {
+            background-color: var(--border-color);
+            color: var(--text-muted);
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SVG 快速拆分工具</h1>
+        
+        <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+            </svg>
+            <p>點擊或拖曳 SVG 檔案至此</p>
+            <input type="file" id="fileInput" accept=".svg,image/svg+xml">
+        </div>
+
+        <div class="status-box" id="statusBox">請選擇要拆分的 SVG 檔案</div>
+        <div class="warn-box" id="warnBox"></div>
+
+        <button class="btn" id="downloadBtn" disabled>下載 ZIP 壓縮檔</button>
+    </div>
+
+    <script>
+        const SHARED_TAGS = new Set([
+            'defs', 'style', 'metadata', 'title', 'desc', 
+            'lineargradient', 'radialgradient', 'pattern', 
+            'clippath', 'mask', 'filter', 'marker', 'symbol', 'script'
+        ]);
+
+        let currentZipBlob = null;
+        let currentZipFilename = 'svg-split.zip';
+
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+        const statusBox = document.getElementById('statusBox');
+        const warnBox = document.getElementById('warnBox');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        // Drag and drop events
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropzone.classList.add('dragover');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropzone.classList.remove('dragover');
+            }, false);
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function resetState() {
+            currentZipBlob = null;
+            currentZipFilename = 'svg-split.zip';
+            downloadBtn.disabled = true;
+            warnBox.style.display = 'none';
+            warnBox.textContent = '';
+            statusBox.className = 'status-box';
+        }
+
+        async function handleFile(file) {
+            resetState();
+
+            if (!file.name.toLowerCase().endsWith('.svg') && file.type !== 'image/svg+xml' && file.type !== '') {
+                statusBox.textContent = '請選擇 SVG 檔案';
+                statusBox.className = 'status-box error';
+                return;
+            }
+
+            const baseName = file.name.replace(/\.[^/.]+$/, "");
+            currentZipFilename = (baseName ? baseName : 'svg-split') + '.zip';
+
+            try {
+                const text = await file.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, "image/svg+xml");
+
+                const parserError = doc.querySelector('parsererror');
+                if (parserError || !doc.documentElement || doc.documentElement.localName.toLowerCase() !== 'svg') {
+                    statusBox.textContent = '檔案無法解析，請確認是有效的 SVG';
+                    statusBox.className = 'status-box error';
+                    return;
+                }
+
+                const objects = scanObjects(doc);
+                if (objects.length === 0) {
+                    statusBox.textContent = '找不到可拆分的物件';
+                    statusBox.className = 'status-box error';
+                    return;
+                }
+
+                const zipFiles = [];
+                const warnings = [];
+
+                objects.forEach((obj, idx) => {
+                    const fileNum = idx + 1;
+                    const svgString = generateObjectSvg(doc, obj);
+                    
+                    const issueTypes = checkTinkercadIssues(obj.element, doc);
+                    if (issueTypes.length > 0) {
+                        warnings.push({ index: fileNum, issues: issueTypes });
+                    }
+
+                    const encoder = new TextEncoder();
+                    zipFiles.push({
+                        name: `${fileNum}.svg`,
+                        data: encoder.encode(svgString)
+                    });
+                });
+
+                const zipBytes = createZip(zipFiles);
+                currentZipBlob = new Blob([zipBytes], { type: 'application/zip' });
+
+                statusBox.textContent = `偵測到 ${objects.length} 個物件`;
+                statusBox.className = 'status-box';
+
+                if (warnings.length > 0) {
+                    const indices = warnings.map(w => w.index).join('、');
+                    const allIssueTypes = [...new Set(warnings.flatMap(w => w.issues))].join('／');
+                    warnBox.textContent = `第 ${indices} 個物件含 Tinkercad 不支援的內容（${allIssueTypes}），請先在 Inkscape 轉成路徑。`;
+                    warnBox.style.display = 'block';
+                }
+
+                downloadBtn.disabled = false;
+
+            } catch (err) {
+                console.error(err);
+                statusBox.textContent = '檔案無法解析，請確認是有效的 SVG';
+                statusBox.className = 'status-box error';
+            }
+        }
+
+        function isNotEmptyObject(element) {
+            const tag = element.localName.toLowerCase();
+            if (tag === 'g') {
+                const kids = element.querySelectorAll('*');
+                return kids.length > 0 || element.children.length > 0;
+            }
+            return true;
+        }
+
+        function scanObjects(doc) {
+            const rootSvg = doc.documentElement;
+            const rootChildren = Array.from(rootSvg.childNodes).filter(n => n.nodeType === Node.ELEMENT_NODE);
+            const objects = [];
+
+            rootChildren.forEach((rootChild, rIdx) => {
+                const tag = rootChild.localName.toLowerCase();
+                if (SHARED_TAGS.has(tag)) {
+                    return;
+                }
+                if (tag === 'g') {
+                    const layerChildren = Array.from(rootChild.childNodes).filter(n => n.nodeType === Node.ELEMENT_NODE);
+                    layerChildren.forEach((layerChild, cIdx) => {
+                        if (isNotEmptyObject(layerChild)) {
+                            objects.push({
+                                type: 'layer-child',
+                                layerIndex: rIdx,
+                                childIndex: cIdx,
+                                element: layerChild
+                            });
+                        }
+                    });
+                } else {
+                    if (isNotEmptyObject(rootChild)) {
+                        objects.push({
+                            type: 'root-child',
+                            rootIndex: rIdx,
+                            element: rootChild
+                        });
+                    }
+                }
+            });
+
+            return objects;
+        }
+
+        function generateObjectSvg(originalDoc, targetObj) {
+            const cloneDoc = originalDoc.cloneNode(true);
+            const cloneSvg = cloneDoc.documentElement;
+            const cloneRootChildren = Array.from(cloneSvg.childNodes).filter(n => n.nodeType === Node.ELEMENT_NODE);
+
+            cloneRootChildren.forEach((cloneRootChild, rIdx) => {
+                const tag = cloneRootChild.localName.toLowerCase();
+                if (SHARED_TAGS.has(tag)) {
+                    return;
+                }
+
+                if (targetObj.type === 'layer-child') {
+                    if (rIdx === targetObj.layerIndex) {
+                        const cloneLayerChildren = Array.from(cloneRootChild.childNodes).filter(n => n.nodeType === Node.ELEMENT_NODE);
+                        cloneLayerChildren.forEach((cloneLayerChild, cIdx) => {
+                            if (cIdx !== targetObj.childIndex) {
+                                cloneRootChild.removeChild(cloneLayerChild);
+                            }
+                        });
+                    } else {
+                        cloneSvg.removeChild(cloneRootChild);
+                    }
+                } else {
+                    if (rIdx === targetObj.rootIndex) {
+                        // Keep
+                    } else {
+                        cloneSvg.removeChild(cloneRootChild);
+                    }
+                }
+            });
+
+            const serializer = new XMLSerializer();
+            let svgString = serializer.serializeToString(cloneDoc);
+            return '<?xml version="1.0" encoding="UTF-8"?>\n' + svgString;
+        }
+
+        function checkTinkercadIssues(element, doc) {
+            const issues = new Set();
+            const allEls = [element, ...element.querySelectorAll('*')];
+
+            for (const el of allEls) {
+                const tag = el.localName.toLowerCase();
+
+                if (tag === 'text' || tag === 'tspan') {
+                    issues.add('文字');
+                }
+                if (tag === 'image') {
+                    issues.add('點陣圖');
+                }
+
+                const hasAttr = (attr) => el.hasAttribute(attr) || (el.style && el.style.getPropertyValue(attr));
+                if (hasAttr('filter')) issues.add('濾鏡');
+                if (hasAttr('mask')) issues.add('遮罩');
+                if (hasAttr('clip-path')) issues.add('剪裁路徑');
+
+                const checkFillStroke = (val) => {
+                    if (val && typeof val === 'string' && val.includes('url(#')) {
+                        const match = val.match(/url\(#([^)]+)\)/);
+                        if (match && match[1]) {
+                            const refId = match[1];
+                            const refEl = doc.getElementById(refId);
+                            if (refEl) {
+                                const refTag = refEl.localName.toLowerCase();
+                                if (refTag.includes('gradient') || refTag.includes('pattern')) {
+                                    issues.add('漸層');
+                                }
+                            }
+                        }
+                    }
+                };
+
+                checkFillStroke(el.getAttribute('fill'));
+                checkFillStroke(el.getAttribute('stroke'));
+                if (el.style) {
+                    checkFillStroke(el.style.fill);
+                    checkFillStroke(el.style.stroke);
+                }
+            }
+
+            return Array.from(issues);
+        }
+
+        const crcTable = (() => {
+            let c;
+            const table = [];
+            for (let n = 0; n < 256; n++) {
+                c = n;
+                for (let k = 0; k < 8; k++) {
+                    c = ((c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1));
+                }
+                table[n] = c >>> 0;
+            }
+            return table;
+        })();
+
+        function crc32(buf) {
+            let c = 0xFFFFFFFF;
+            for (let i = 0; i < buf.length; i++) {
+                c = (c >>> 8) ^ crcTable[(c ^ buf[i]) & 0xFF];
+            }
+            return (c ^ 0xFFFFFFFF) >>> 0;
+        }
+
+        function createZip(files) {
+            const encoder = new TextEncoder();
+            let localHeaders = [];
+            let centralDirectories = [];
+            let offset = 0;
+
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth() + 1;
+            const day = now.getDate();
+            const hour = now.getHours();
+            const minute = now.getMinutes();
+            const second = now.getSeconds();
+
+            const dosTime = (hour << 11) | (minute << 5) | (Math.floor(second / 2));
+            const dosDate = ((year - 1980) << 9) | (month << 5) | day;
+
+            for (const file of files) {
+                const nameBytes = encoder.encode(file.name);
+                const dataBytes = file.data;
+                const crc = crc32(dataBytes);
+                const size = dataBytes.length;
+
+                const lfh = new Uint8Array(30 + nameBytes.length);
+                const lfhView = new DataView(lfh.buffer);
+                lfhView.setUint32(0, 0x04034b50, true);
+                lfhView.setUint16(4, 20, true);
+                lfhView.setUint16(6, 0x0800, true);
+                lfhView.setUint16(8, 0, true);
+                lfhView.setUint16(10, dosTime, true);
+                lfhView.setUint16(12, dosDate, true);
+                lfhView.setUint32(14, crc, true);
+                lfhView.setUint32(18, size, true);
+                lfhView.setUint32(22, size, true);
+                lfhView.setUint16(26, nameBytes.length, true);
+                lfhView.setUint16(28, 0, true);
+                lfh.set(nameBytes, 30);
+
+                const cdh = new Uint8Array(46 + nameBytes.length);
+                const cdhView = new DataView(cdh.buffer);
+                cdhView.setUint32(0, 0x02014b50, true);
+                cdhView.setUint16(4, 20, true);
+                cdhView.setUint16(6, 20, true);
+                cdhView.setUint16(8, 0x0800, true);
+                cdhView.setUint16(10, 0, true);
+                cdhView.setUint16(12, dosTime, true);
+                cdhView.setUint16(14, dosDate, true);
+                cdhView.setUint32(16, crc, true);
+                cdhView.setUint32(20, size, true);
+                cdhView.setUint32(24, size, true);
+                cdhView.setUint16(28, nameBytes.length, true);
+                cdhView.setUint16(30, 0, true);
+                cdhView.setUint16(32, 0, true);
+                cdhView.setUint16(34, 0, true);
+                cdhView.setUint16(36, 0, true);
+                cdhView.setUint32(38, 0, true);
+                cdhView.setUint32(42, offset, true);
+                cdh.set(nameBytes, 46);
+
+                localHeaders.push(lfh);
+                localHeaders.push(dataBytes);
+                centralDirectories.push(cdh);
+
+                offset += lfh.length + dataBytes.length;
+            }
+
+            const cdSize = centralDirectories.reduce((acc, cdh) => acc + cdh.length, 0);
+            const cdOffset = offset;
+
+            const eocd = new Uint8Array(22);
+            const eocdView = new DataView(eocd.buffer);
+            eocdView.setUint32(0, 0x06054b50, true);
+            eocdView.setUint16(4, 0, true);
+            eocdView.setUint16(6, 0, true);
+            eocdView.setUint16(8, files.length, true);
+            eocdView.setUint16(10, files.length, true);
+            eocdView.setUint32(12, cdSize, true);
+            eocdView.setUint32(16, cdOffset, true);
+            eocdView.setUint16(20, 0, true);
+
+            const totalLength = offset + cdSize + eocd.length;
+            const result = new Uint8Array(totalLength);
+            let cursor = 0;
+            for (const part of localHeaders) {
+                result.set(part, cursor);
+                cursor += part.length;
+            }
+            for (const cdh of centralDirectories) {
+                result.set(cdh, cursor);
+                cursor += cdh.length;
+            }
+            result.set(eocd, cursor);
+
+            return result;
+        }
+
+        downloadBtn.addEventListener('click', () => {
+            if (!currentZipBlob) return;
+            const url = URL.createObjectURL(currentZipBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = currentZipFilename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+    </script>
+</body>
+</html>
