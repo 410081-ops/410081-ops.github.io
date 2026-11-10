@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SVG 拆分工具</title>
+<style>
+:root{
+  --bg:#f3f5f7;--surface:#fff;--ink:#14202b;--muted:#5d6b78;--line:#aab5bf;
+  --accent:#1f5eff;--on-accent:#fff;--warn:#8a5200;--err:#b3261e;
+  box-sizing:border-box;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#10161c;--surface:#18212a;--ink:#e8edf2;--muted:#93a1ae;--line:#47545f;
+    --accent:#6d9bff;--on-accent:#0b1220;--warn:#e6b05a;--err:#f2938b}
+}
+*,*::before,*::after{box-sizing:inherit}
+html,body{margin:0;min-height:100%}
+body{
+  background:var(--bg);color:var(--ink);
+  font:16px/1.6 "Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  display:flex;justify-content:center;padding:48px 20px;
+}
+main{width:100%;max-width:560px;display:flex;flex-direction:column;gap:16px}
+h1{margin:0 0 4px;text-align:center;font-size:1.65rem;line-height:1.3;color:var(--ink)}
+.drop{
+  border:2px dashed var(--line);border-radius:10px;background:var(--surface);
+  padding:44px 20px;text-align:center;color:var(--muted);cursor:pointer;
+  transition:border-color .15s,color .15s;
+}
+.drop:hover,.drop.over{border-color:var(--accent);color:var(--ink)}
+.drop:focus-visible,button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.msg{margin:0;min-height:1.6em;overflow-wrap:anywhere}
+.msg.err{color:var(--err)}
+.msg.warn{color:var(--warn)}
+button{
+  font:inherit;font-weight:600;padding:12px 20px;border:0;border-radius:8px;
+  background:var(--accent);color:var(--on-accent);cursor:pointer;
+}
+button:disabled{background:var(--line);color:var(--muted);cursor:not-allowed}
+.help{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:14px 16px}
+.help summary{font-weight:600;cursor:pointer;color:var(--ink)}
+.help summary:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:3px}
+.help-content{margin-top:14px;color:var(--ink)}
+.help-content h2{font-size:1.05rem;margin:18px 0 6px}
+.help-content h2:first-child{margin-top:0}
+.help-content p{margin:6px 0}
+.help-content ol,.help-content ul{padding-left:1.4em;margin:6px 0}
+.help-content li{margin:4px 0}
+.warning-list{width:100%;border-collapse:collapse;margin:8px 0;font-size:.92rem}
+.warning-list th,.warning-list td{border:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top}
+.warning-list th{background:var(--bg)}
+.help-note{color:var(--muted);font-size:.92rem}
+@media(max-width:420px){
+  body{padding:28px 14px}
+  .warning-list{font-size:.84rem}
+  .warning-list th,.warning-list td{padding:6px}
+}
+</style>
+</head>
+<body>
+<main>
+  <h1>SVG 快速拆分工具 v0.11.10</h1>
+  <a href="https://410081-ops.github.io/SVG2.html"; style="text-align: center;">遇到問題可以試試舊版：點我(v0.11.9)</a>
+  <p>只會幫你拆物件，不會幫你處理雕刻、刪重複物件、結合路徑、召喚颱風、競選總統。</p>
+  <div class="drop" id="drop" tabindex="0" role="button">點擊或拖曳 SVG 檔案至此</div>
+  <input type="file" id="file" accept=".svg,image/svg+xml" hidden>
+  <p class="msg" id="status" role="status"></p>
+  <p class="msg warn" id="warn"></p>
+  <button id="dl" disabled>下載 ZIP</button>
+
+  <details class="help">
+    <summary>【不重要】以防有人看不懂</summary>
+    <div class="help-content">
+      <h2>一、支援檔案</h2>
+      <ul>
+        <li>僅支援 SVG 檔案；一次處理一個檔案。</li>
+        <li>不支援的功能會原地消失。。</li>
+      </ul>
+
+      <h2>二、操作方式</h2>
+      <ol>
+        <li>上傳 SVG 檔案（Inkscape原始檔也可）。</li>
+        <li>選取檔案後，工具會自動解析並拆分，不需要另外按開始。</li>
+        <li>確認顯示的物件數量及警告訊息，再點擊「下載 ZIP」。</li>
+        <li>解壓縮下載的 ZIP，即可取得依序命名為 1.svg、2.svg、3.svg……的檔案。若原檔有兩個以上的圖層，檔案會依圖層分放在 layer1、layer2……資料夾中（檔案編號仍連續）。</li>
+      </ol>
+
+      <h2>三、可能出現的警告</h2>
+      <p>若物件含有 Tinkercad 可能無法正確處理的內容，工具會顯示警告：</p>
+      <table class="warning-list">
+        <thead>
+          <tr><th>偵測項目</th><th>可能影響</th><th>建議處理方式</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>文字</td><td>文字可能無法可靠匯入。</td><td>在 Inkscape 選取文字，使用「路徑 → 物件轉成路徑」。</td></tr>
+          <tr><td>漸層／Pattern</td><td>顏色可能被簡化為單色。</td><td>改用純色填色。</td></tr>
+          <tr><td>濾鏡</td><td>濾鏡效果可能被忽略。</td><td>移除濾鏡效果。</td></tr>
+          <tr><td>Mask</td><td>遮罩效果可能無法保留。</td><td>先在 Inkscape 將效果轉換成實際形狀。</td></tr>
+          <tr><td>Clip-path</td><td>裁切效果可能無法保留。</td><td>先在 Inkscape 將效果轉換成實際形狀。</td></tr>
+          <tr><td>點陣圖</td><td>嵌入的點陣圖不受 Tinkercad 支援。</td><td>改用向量圖形。</td></tr>
+        </tbody>
+      </table>
+      <p class="help-note">警告只提醒可能的相容性問題，不代表拆分失敗，也不會阻止下載。工具不會自動修改圖形；請依需求在 Inkscape 處理後重新匯出。</p>
+
+      <h2>四、使用注意事項</h2>
+      <ul>
+        <li>拆分後會保留原始畫布尺寸及物件位置，不會自動裁切或重新定位。</li>
+        <li>每個輸出 SVG 包含一個拆分物件及原檔的共用資源。</li>
+        <li>圖層資料夾依由下而上編號，layer1 為 Inkscape 圖層面板中最下方的圖層（空圖層不計）；Plain SVG 不保留圖層名稱，因此以編號命名。</li>
+        <li>匯入 Tinkercad 時，物件可能被自動置中；多個檔案匯入後如未對齊，請在 Tinkercad 手動調整。</li>
+        <li>建議首次使用時，先將輸出檔匯入 Tinkercad，確認尺寸、顏色及挖孔效果。</li>
+      </ul>
+    </div>
+    <a href="https://claude.ai/share/9cd701f6-a0e1-42ad-b8f1-42ac389f1ce0"; style="text-align: center;">怎麼做的? Claude紀錄連結(1)</a>
+  </details>
+  <details class="help">
+    <summary>2026/11/10 更新內容</summary>
+    <div class="help-content">
+      <h2>圖層分隔</h2>
+      <ul>
+        <li>現在可以預先設定好圖層後，再丟進來！</li>
+        <li>輸出的檔案會依照<strong>圖層順序</strong>分類於不同資料夾中。</li>
+        <li>這樣就不用慢慢找檔案ㄌ～</li>
+      </ul>
+    </div>
+    <a href="https://claude.ai/share/9cd701f6-a0e1-42ad-b8f1-42ac389f1ce0"; style="text-align: center;">v0.11.10 Claude紀錄連結(2)</a>
+  </details>
+</main>
+
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+// 不算物件、但每個輸出檔都要保留的共用資源
+const SKIP = new Set(['defs','style','metadata','title','desc','lineargradient','radialgradient',
+  'pattern','clippath','mask','filter','marker','symbol','script']);
+// 含有這些元素才算「有內容」的物件
+const SHAPE = new Set(['path','rect','circle','ellipse','line','polyline','polygon','text','image','use','foreignobject']);
+const ORDER = ['文字','漸層','濾鏡','mask','clip-path','點陣圖'];
+
+const $ = id => document.getElementById(id);
+const drop = $('drop'), input = $('file'), statusEl = $('status'), warnEl = $('warn'), dl = $('dl');
+let output = null; // { files: [{name, data}], zipName }
+
+function setStatus(text, isErr) {
+  statusEl.textContent = text;
+  statusEl.classList.toggle('err', !!isErr);
+}
+
+const hasShape = e => SHAPE.has(e.localName.toLowerCase()) || [...e.children].some(c => hasShape(c));
+
+// 讀取屬性值；inline style 優先於屬性
+function prop(e, p) {
+  const s = e.getAttribute('style');
+  if (s) {
+    const m = s.match(new RegExp('(?:^|;)\\s*' + p + '\\s*:\\s*([^;]+)'));
+    if (m) return m[1].trim();
+  }
+  return e.getAttribute(p) || '';
+}
+
+// 偵測 Tinkercad 不支援的內容（只回報，不修改；純邊框不提示）
+function detect(list, ids) {
+  const found = new Set();
+  for (const e of list) {
+    const n = e.localName.toLowerCase();
+    if (n === 'text' || n === 'tspan') found.add('文字');
+    if (n === 'image') found.add('點陣圖');
+    for (const p of ['fill', 'stroke']) {
+      const m = prop(e, p).match(/url\(\s*['"]?#([^)'"\s]+)/);
+      if (m && /gradient|pattern/i.test(ids.get(m[1]) || '')) found.add('漸層');
+    }
+    for (const [p, label] of [['filter', '濾鏡'], ['mask', 'mask'], ['clip-path', 'clip-path']]) {
+      const v = prop(e, p);
+      if (v && v !== 'none') found.add(label);
+    }
+  }
+  return found;
+}
+
+async function handle(file) {
+  output = null;
+  dl.disabled = true;
+  warnEl.textContent = '';
+  setStatus('');
+  if (!file) return;
+
+  if (!/\.svg$/i.test(file.name) && file.type !== 'image/svg+xml') {
+    return setStatus('請選擇 SVG 檔案', true);
+  }
+  try {
+    const text = await file.text();
+    const doc = new DOMParser().parseFromString(text, 'image/svg+xml');
+    if (doc.getElementsByTagName('parsererror').length) {
+      return setStatus('檔案無法解析，請確認是有效的 SVG', true);
+    }
+    const root = doc.documentElement;
+    if (root.localName !== 'svg') return setStatus('請選擇 SVG 檔案', true);
+
+    // 最頂層的 <g> 視為圖層（plain SVG 無法區分圖層與群組），拆它底下的子元素；
+    // 圖層內的群組仍算一個物件。根節點下直接出現的非 <g> 元素本身就是物件。
+    const isRes = k => k.namespaceURI !== NS || SKIP.has(k.localName.toLowerCase());
+    const slots = [];
+    const layerOf = new Map(); // 物件 → 所屬圖層編號（只有含圖形的圖層才會編號）
+    let layerNo = 0, looseNo = 0;
+    for (const k of root.children) {
+      if (isRes(k)) continue;
+      if (k.localName === 'g') {
+        const kids = [...k.children].filter(c => !isRes(c));
+        kids.forEach(c => slots.push(c));
+        if (kids.some(hasShape)) { layerNo++; kids.forEach(c => layerOf.set(c, layerNo)); looseNo = 0; }
+      } else {
+        // 根節點下連續的零散物件，合併視為一個虛擬圖層
+        if (hasShape(k)) { if (!looseNo) looseNo = ++layerNo; layerOf.set(k, looseNo); }
+        slots.push(k);
+      }
+    }
+    const targets = slots.filter(hasShape);
+    if (!targets.length) return setStatus('找不到可拆分的物件', true);
+    const layerIds = [...new Set(targets.map(t => layerOf.get(t)))];
+    const useFolders = layerIds.length >= 2; // 兩個圖層以上才分資料夾
+    const pathOf = e => {
+      const p = [];
+      for (let n = e; n !== root; n = n.parentElement) p.unshift([...n.parentElement.children].indexOf(n));
+      return p;
+    };
+    const slotPaths = slots.map(pathOf);
+
+    const ids = new Map([...doc.querySelectorAll('[id]')].map(e => [e.getAttribute('id'), e.localName]));
+    const enc = new TextEncoder(), ser = new XMLSerializer();
+    const files = [], flagged = [], types = new Set();
+
+    targets.forEach((t, n) => {
+      const clone = root.cloneNode(true);
+      const at = p => p.reduce((node, i) => node.children[i], clone);
+      // 先找出所有要刪的節點再一起刪，避免索引位移；圖層外殼、共用資源與目標物件原樣保留
+      const others = slots.map((s, i) => s === t ? null : at(slotPaths[i])).filter(Boolean);
+      others.forEach(c => c.remove());
+      const xml = '<?xml version="1.0" encoding="UTF-8"?>\n' + ser.serializeToString(clone);
+      const dir = useFolders ? 'layer' + (layerIds.indexOf(layerOf.get(t)) + 1) + '/' : '';
+      files.push({ name: dir + (n + 1) + '.svg', data: enc.encode(xml) });
+      const chain = [];
+      for (let a = t.parentElement; a && a !== root; a = a.parentElement) chain.push(a);
+      const f = detect([...chain, t, ...t.querySelectorAll('*')], ids);
+      if (f.size) { flagged.push(n + 1); f.forEach(x => types.add(x)); }
+    });
+
+    output = { files, zipName: (file.name.replace(/\.svg$/i, '') || 'svg-split') + '.zip' };
+    setStatus('偵測到 ' + files.length + ' 個物件、 ' + layerIds.length + ' 個圖層');
+    if (flagged.length) {
+      warnEl.textContent = '第 ' + flagged.join('、') + ' 個物件含 Tinkercad 不支援的內容（' +
+        ORDER.filter(x => types.has(x)).join('／') + '），請先在 Inkscape 轉成路徑。';
+    }
+    dl.disabled = false;
+  } catch (e) {
+    setStatus('檔案無法解析，請確認是有效的 SVG', true);
+  }
+}
+
+/* ---------- ZIP（僅儲存、不壓縮） ---------- */
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1;
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+
+function crc32(bytes) {
+  let c = 0xFFFFFFFF;
+  for (let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 255] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+
+function makeZip(files) {
+  const enc = new TextEncoder(), d = new Date();
+  const time = (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1);
+  const date = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
+  const locals = [], centrals = [];
+  let offset = 0;
+
+  for (const f of files) {
+    const name = enc.encode(f.name), crc = crc32(f.data), size = f.data.length;
+
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true);
+    lh.setUint16(4, 20, true);
+    lh.setUint16(6, 0x0800, true);      // UTF-8 檔名
+    lh.setUint16(10, time, true);
+    lh.setUint16(12, date, true);
+    lh.setUint32(14, crc, true);
+    lh.setUint32(18, size, true);
+    lh.setUint32(22, size, true);
+    lh.setUint16(26, name.length, true);
+
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true);
+    ch.setUint16(4, 20, true);
+    ch.setUint16(6, 20, true);
+    ch.setUint16(8, 0x0800, true);
+    ch.setUint16(12, time, true);
+    ch.setUint16(14, date, true);
+    ch.setUint32(16, crc, true);
+    ch.setUint32(20, size, true);
+    ch.setUint32(24, size, true);
+    ch.setUint16(28, name.length, true);
+    ch.setUint32(42, offset, true);
+
+    locals.push(new Uint8Array(lh.buffer), name, f.data);
+    centrals.push(new Uint8Array(ch.buffer), name);
+    offset += 30 + name.length + size;
+  }
+
+  const cdSize = centrals.reduce((s, p) => s + p.length, 0);
+  const end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true);
+  end.setUint16(8, files.length, true);
+  end.setUint16(10, files.length, true);
+  end.setUint32(12, cdSize, true);
+  end.setUint32(16, offset, true);
+
+  return new Blob([...locals, ...centrals, new Uint8Array(end.buffer)], { type: 'application/zip' });
+}
+
+/* ---------- 事件 ---------- */
+dl.addEventListener('click', () => {
+  if (!output) return;
+  const url = URL.createObjectURL(makeZip(output.files));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = output.zipName;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
+
+drop.addEventListener('click', () => input.click());
+drop.addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); }
+});
+input.addEventListener('change', () => { handle(input.files[0]); input.value = ''; });
+drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+drop.addEventListener('drop', e => {
+  e.preventDefault();
+  drop.classList.remove('over');
+  handle(e.dataTransfer.files[0]);
+});
+// 避免拖到區域外時瀏覽器直接開啟檔案
+['dragover', 'drop'].forEach(t => window.addEventListener(t, e => e.preventDefault()));
+</script>
+</body>
+</html>
